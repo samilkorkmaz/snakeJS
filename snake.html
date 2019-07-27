@@ -1,0 +1,95 @@
+<canvas id="gameCanvas" width="400" height="400"></canvas>
+<script>
+    //Reference: "Coding "Snake" in 4 min 30 sec (plain browser JavaScript)", Chris DeLeon, https://www.youtube.com/watch?v=xGmXxpIj6vs
+    let canvas = document.getElementById("gameCanvas");
+    const gridSize = 20; //size of snake tiles/cells
+    const tileCount = canvas.width/gridSize; //number of tiles/cells on canvas
+    let ctx = canvas.getContext("2d");
+    let paused = false;
+    const ESCAPE_KEY = 27; //to pause updateDrawing
+    const LEFT_ARROW_KEY = 37;
+    const UP_ARROW_KEY = 38;
+    const RIGHT_ARROW_KEY = 39;
+    const DOWN_ARROW_KEY = 40;
+    const FPS = 5; //15 times per second
+    let refreshId;
+    let snakeX = snakeY = 10;
+    let appleX = appleY = 0;
+    let xv = yv = 0;
+    let trail = [];
+    let snakeLength = 5;
+    window.onload = function () {
+        document.addEventListener("keydown", keyPush);
+        refreshId = setInterval(updateDrawing, 1000 / FPS);
+    }
+    function updateDrawing() {
+        if (!paused) {
+            snakeX += xv;
+            snakeY += yv;
+            if (snakeX < 0) {
+                snakeX = tileCount - 1;
+            }
+            if (snakeX > tileCount - 1) {
+                snakeX = 0;
+            }
+            if (snakeY < 0) {
+                snakeY = tileCount - 1;
+            }
+            if (snakeY > tileCount - 1) {
+                snakeY = 0;
+            }
+            //clear canvas
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            //draw snake
+            ctx.fillStyle = "lime";
+            for (let i = 0; i < trail.length; i++) {
+                ctx.fillRect(trail[i].x * gridSize, trail[i].y * gridSize, gridSize - 2, gridSize - 2);
+                if (trail[i].x === snakeX && trail[i].y === snakeY) {
+                    snakeLength = 5;
+                }
+            }
+            trail.push({ x: snakeX, y: snakeY });
+            while (trail.length > snakeLength) { //BUG: When snake reverts onto itself, trail length becomes the default value of 5
+                trail.shift(); //remove first element
+            }
+            if (appleX === snakeX && appleY === snakeY) {
+                snakeLength++;
+                appleX = Math.floor(Math.random() * tileCount);
+                appleY = Math.floor(Math.random() * tileCount);
+            }
+            //draw apple
+            ctx.fillStyle = "red";
+            ctx.fillRect(appleX * gridSize, appleY * gridSize, gridSize - 2, gridSize - 2);
+        }
+    }
+    function keyPush(evt) {
+        console.log(evt.keyCode);
+        switch (evt.keyCode) {
+            case ESCAPE_KEY:
+                //clearInterval(refreshId);
+                paused = true;
+                break;
+            case LEFT_ARROW_KEY:
+                xv = -1;
+                yv = 0;
+                paused = false;
+                break;
+            case UP_ARROW_KEY:
+                xv = 0;
+                yv = -1;
+                paused = false;
+                break;
+            case RIGHT_ARROW_KEY:
+                xv = 1;
+                yv = 0;
+                paused = false;
+                break;
+            case DOWN_ARROW_KEY:
+                xv = 0;
+                yv = 1;
+                paused = false;
+                break;
+        }
+    }
+</script>
